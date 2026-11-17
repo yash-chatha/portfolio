@@ -631,8 +631,9 @@ if (PERF) {
   };
   let last = 0; (function tick(now) { requestAnimationFrame(tick); perfS.frames++; if (last) perfS.intervals.push(now - last); if (perfS.intervals.length > 600) perfS.intervals.shift(); last = now; })(0);
 }
+const PERF_GPU = /[?&]perf=gpu\b/.test(location.search);
 function probe(r, name) {
-  if (!PERF) return;
+  if (!PERF_GPU) return;
   const gl = r.getContext(), orig = r.render.bind(r);
   r.render = (a, b) => { const t0 = performance.now(); orig(a, b); gl.finish(); perfS.r[name] = (perfS.r[name] || 0) + performance.now() - t0; };
 }
