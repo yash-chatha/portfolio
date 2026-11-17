@@ -190,7 +190,7 @@ main,.nav,.socials,.toast{position:relative;z-index:1}
 .music-lede{max-width:600px;margin:16px 0 0;color:var(--text-2);font-size:17px;line-height:1.7}
 .radio-stage{position:relative;height:clamp(480px,66vh,720px);width:min(1400px,100%);margin:6px auto 0}
 #radio{position:absolute;inset:0;width:100%;height:100%;display:block}
-.sig-label{position:absolute;left:0;top:0;padding:5px 11px;border-radius:999px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.04em;white-space:nowrap;color:var(--muted);background:rgba(8,10,24,.55);border:1px solid rgba(255,255,255,.1);pointer-events:none;transition:color .3s,border-color .3s,box-shadow .3s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.sig-label{position:absolute;left:0;top:0;padding:5px 11px;border-radius:999px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.04em;white-space:nowrap;color:var(--muted);background:rgba(8,10,24,.85);border:1px solid rgba(255,255,255,.1);pointer-events:none;transition:color .3s,border-color .3s,box-shadow .3s}
 .sig-label.lock{color:#fff;border-color:var(--sc);box-shadow:0 0 18px -4px var(--sc)}
 .console{position:relative;z-index:2;margin-top:-70px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-areas:"readout scope" "tuner tuner";gap:18px 28px;padding:24px 28px 26px;border-radius:24px;background:linear-gradient(160deg,rgba(24,26,56,.62),rgba(8,10,26,.78));border:1px solid rgba(167,139,250,.18);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 30px 60px -40px rgba(0,0,0,.9)}
 .readout{grid-area:readout;display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 28px}
@@ -240,7 +240,7 @@ main,.nav,.socials,.toast{position:relative;z-index:1}
 .globe-stage{position:relative;aspect-ratio:1;width:100%;max-width:560px;margin:0 auto;cursor:grab;touch-action:pan-y}
 .globe-stage.dragging{cursor:grabbing}
 #globe{width:100%;height:100%;display:block}
-.g-label{position:absolute;left:0;top:0;transform:translate(-50%,-150%);padding:4px 10px;border-radius:999px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;white-space:nowrap;color:#fff;background:rgba(10,12,28,.72);border:1px solid rgba(165,243,252,.28);pointer-events:none;transition:opacity .3s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.g-label{position:absolute;left:0;top:0;transform:translate(-50%,-150%);padding:4px 10px;border-radius:999px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;white-space:nowrap;color:#fff;background:rgba(10,12,28,.88);border:1px solid rgba(165,243,252,.28);pointer-events:none;transition:opacity .3s}
 .g-label.home{border-color:rgba(255,138,101,.45)}
 .g-label.on{border-color:rgba(165,243,252,.8);box-shadow:0 0 16px -2px rgba(34,211,238,.6)}
 .globe-hint{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);margin:0;font-size:12px;color:var(--muted);font-style:italic;pointer-events:none}
@@ -642,11 +642,17 @@ const canvas = document.getElementById('space');
 const hero = document.getElementById('home');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let renderer;
-try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); }
 catch (e) { document.documentElement.classList.add('no-webgl'); throw e; }
 
 const PR = Math.min(window.devicePixelRatio || 1, 2);
-renderer.setPixelRatio(PR); probe(renderer, 'main');
+// WebGL resolution budget: capped at 1.5x and stepped down automatically if frames run slow
+const Q = { pr: Math.min(window.devicePixelRatio || 1, 1.5), fixed: /[?&]perf=(fixed|gpu)\b/.test(location.search), subs: [],
+  on(f) { this.subs.push(f); }, drop() { if (this.pr <= 1) return; this.pr = Math.max(1, +(this.pr - 0.25).toFixed(2)); this.subs.forEach(f => f()); } };
+if (PERF) window.__q = Q;
+// Compile every shader up front in the background, so scrolling into a section never freezes on a compile
+const precompile = (r, s, c) => { if (r.compileAsync) r.compileAsync(s, c).catch(() => {}); else r.compile(s, c); };
+renderer.setPixelRatio(Q.pr); probe(renderer, 'main');
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -724,7 +730,7 @@ sGeo.setAttribute('aSize', new THREE.BufferAttribute(sSize, 1));
 sGeo.setAttribute('aSeed', new THREE.BufferAttribute(sSeed, 1));
 const starMat = new THREE.ShaderMaterial({
   transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
-  uniforms: { uTime: { value: 0 }, uPR: { value: PR }, uScroll: { value: 0 }, uMouse: { value: new THREE.Vector2() }, uTan: { value: TAN } },
+  uniforms: { uTime: { value: 0 }, uPR: { value: Q.pr }, uScroll: { value: 0 }, uMouse: { value: new THREE.Vector2() }, uTan: { value: TAN } },
   vertexShader: `
     attribute float aSize; attribute float aSeed;
     uniform float uTime, uPR, uScroll, uTan; uniform vec2 uMouse;
@@ -952,9 +958,9 @@ const pMat = new THREE.PointsMaterial({ size: 0.05, map: glowTex, color: new THR
 ship.add(new THREE.Points(pGeo, pMat));
 
 /* ================= Post-processing at full resolution with MSAA ================= */
-const rt = new THREE.WebGLRenderTarget(innerWidth * PR, innerHeight * PR, { type: THREE.HalfFloatType, samples: 4 });
+const rt = new THREE.WebGLRenderTarget(innerWidth * Q.pr, innerHeight * Q.pr, { type: THREE.HalfFloatType, samples: Q.pr >= 1.5 ? 2 : 4 });
 const composer = new EffectComposer(renderer, rt);
-composer.setPixelRatio(PR);
+composer.setPixelRatio(Q.pr);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new ShaderPass({
   uniforms: { tDiffuse: { value: null } },
@@ -962,6 +968,7 @@ composer.addPass(new ShaderPass({
   fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec4 c = texture2D(tDiffuse, vUv); bvec3 bad = isnan(c.rgb); c.rgb = mix(c.rgb, vec3(0.0), vec3(bad)); c.rgb = clamp(c.rgb, 0.0, 48.0); gl_FragColor = vec4(c.rgb, 1.0); }'
 }));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.35, 0.92); composer.addPass(bloom);
+const nanPass = composer.passes[1];
 composer.addPass(new OutputPass());
 
 /* ================= Layout ================= */
@@ -969,7 +976,8 @@ const base = new THREE.Vector3(); let shipScale = 1, worldPerPx = 1;
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false); composer.setSize(w, h);
-  nebRT.setSize(Math.max(2, Math.round(w * PR * 0.5)), Math.max(2, Math.round(h * PR * 0.5)));
+  nebRT.setSize(Math.max(2, Math.round(w * 0.5)), Math.max(2, Math.round(h * 0.5)));  // soft by nature: half CSS resolution is plenty
+  measureLayout();
   camera.aspect = w / h; camera.updateProjectionMatrix();
   nebMat.uniforms.uAspect.value = w / h;
   worldPerPx = (2 * TAN * 8.2) / h;
@@ -977,7 +985,18 @@ function resize() {
   else { base.set(0, 1.35, 0); shipScale = 0.62; }
   ship.scale.setScalar(shipScale);
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', resize);
+// Page geometry is read once per layout change, not every frame (per-frame reads force layout)
+let maxS = 1, hStart = 0;
+function measureLayout() {
+  maxS = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  const tkEl = document.getElementById('toolkit');
+  hStart = tkEl ? Math.min(maxS - 1, tkEl.getBoundingClientRect().top + scrollY - innerHeight * 1.15) : maxS * 0.56;
+}
+if ('ResizeObserver' in window) new ResizeObserver(measureLayout).observe(document.body);
+addEventListener('load', measureLayout);
+resize();
+Q.on(() => { renderer.setPixelRatio(Q.pr); composer.setPixelRatio(Q.pr); starMat.uniforms.uPR.value = Q.pr; resize(); });
 ship.position.copy(base); ship.rotation.x = 0.22;
 
 /* ================= Interaction ================= */
@@ -987,11 +1006,16 @@ hero.addEventListener('click', e => { if (e.target.closest('a,button')) return; 
 
 /* ================= Animate ================= */
 const clock = new THREE.Clock(); const prev = ship.position.clone(); const vel = new THREE.Vector2(); let beamI = 0.35;
-let sScroll = scrollY, sVel = 0;
+let sScroll = scrollY, sVel = 0, slowEma = 0.016, slowN = 0;
 function frame() {
   requestAnimationFrame(frame);
   if (document.hidden) return;
-  const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+  const rawDt = clock.getDelta(), dt = Math.min(rawDt, 0.05), t = clock.elapsedTime;
+  // Adaptive resolution: if frames stay slow for ~1.5s, step the render resolution down
+  if (!Q.fixed && t > 4 && rawDt < 0.25) {
+    slowEma += (rawDt - slowEma) * 0.05;
+    if (slowEma > 0.028) { if (++slowN > 90) { slowN = 0; slowEma = 0.016; Q.drop(); } } else slowN = Math.max(0, slowN - 2);
+  }
   const ease = k => 1 - Math.pow(k, dt);
   mouse.lerp(target, reduce ? 1 : ease(0.04));
 
@@ -1008,10 +1032,8 @@ function frame() {
   starMat.uniforms.uTime.value = t; starMat.uniforms.uScroll.value = sScroll * worldPerPx; starMat.uniforms.uMouse.value.copy(mouse);
 
   // Descend toward the planet as you scroll; the moon rises behind its horizon near the end
-  const maxS = Math.max(1, document.documentElement.scrollHeight - innerHeight);
   const prog = Math.min(1, Math.max(0, sScroll / maxS));
   const ep = prog * prog * (3 - 2 * prog);
-  const tkEl = document.getElementById('toolkit'); const hStart = tkEl ? Math.min(maxS - 1, tkEl.getBoundingClientRect().top + scrollY - innerHeight * 1.15) : maxS * 0.56;
   const hp = Math.min(1, Math.max(0, (sScroll - hStart) / Math.max(1, maxS - hStart))); const hep = hp * hp * (3 - 2 * hp);
   const horizonY = -1.08 + hep * (innerWidth > 860 ? 0.62 : 0.56) + mouse.y * 0.01;
   const pdy = horizonDy(PLANET_R, PLANET_HD, horizonY);
@@ -1050,8 +1072,11 @@ function frame() {
     for (let i = 0; i < PN; i++) { pPos[i * 3 + 1] += dt * pSpd[i] * (0.4 + beamI); if (pPos[i * 3 + 1] > -0.5) resetP(i); }
     pGeo.attributes.position.needsUpdate = true;
   }
+  // Bloom only matters for the UFO and the planet/moon at the bottom; skip it in between
+  const needBloom = heroOn || hp > 0.002; bloom.enabled = needBloom; nanPass.enabled = needBloom;
   composer.render();
 }
+precompile(renderer, nebScene, nebCam); precompile(renderer, scene, camera);
 frame();
 
 /* ================= 3D GLOBE: places I've been ================= */
@@ -1060,7 +1085,7 @@ frame();
   if (!stage) return;
   let gr;
   try { gr = new THREE.WebGLRenderer({ canvas: gCanvas, antialias: true, alpha: true }); } catch (e) { return; }
-  probe(gr, 'globe'); gr.setPixelRatio(PR); gr.outputColorSpace = THREE.SRGBColorSpace;
+  probe(gr, 'globe'); gr.setPixelRatio(Q.pr); gr.outputColorSpace = THREE.SRGBColorSpace;
   const gScene = new THREE.Scene(), gCam = new THREE.PerspectiveCamera(30, 1, 0.1, 100); gCam.position.set(0, 0, 6.2);
   const globe = new THREE.Group(); gScene.add(globe);
   const R = 1.45;
@@ -1085,7 +1110,7 @@ frame();
   }
   const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lp, 3)); lg.setAttribute('aR', new THREE.BufferAttribute(lr, 1));
   const dotMat = new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, uniforms: { uPR: { value: PR }, uTime: { value: 0 } },
+    transparent: true, depthWrite: false, uniforms: { uPR: { value: Q.pr }, uTime: { value: 0 } },
     vertexShader: 'attribute float aR; uniform float uPR; uniform float uTime; varying float vA; varying float vR; void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); vec3 n = normalize(normalMatrix * position); vA = smoothstep(-0.05, 0.45, n.z); vR = aR; gl_PointSize = (aR > 1.5 ? 2.8 : 2.1 + aR * 0.6) * uPR; gl_Position = projectionMatrix * mv; }',
     fragmentShader: 'varying float vA; varying float vR; void main(){ vec2 d = gl_PointCoord - 0.5; float a = smoothstep(0.5, 0.15, length(d)) * vA; if (a < 0.01) discard; vec3 c = vR > 1.5 ? vec3(0.8, 0.95, 1.0) : mix(vec3(0.55, 0.85, 1.0), vec3(0.75, 0.68, 1.0), vR); gl_FragColor = vec4(c, a * 0.95); }'
   });
@@ -1160,15 +1185,19 @@ frame();
     const p = places[+b.dataset.i]; const f = faceAngles(p);
     let dy = f.y - tgt.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); tgt.y += dy; tgt.x = f.x;
     idle = false; lastInteract = performance.now() + 2500;
-    btns.forEach(x => x.setAttribute('aria-pressed', x === b)); places.forEach(q => q.el.classList.toggle('on', q === p));
+    btns.forEach(x => x.setAttribute('aria-pressed', x === b)); places.forEach(q => { q.on = q === p; q.el.classList.toggle('on', q.on); });
   }));
 
   let visible = false;
-  new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0 }).observe(stage);
-  function size() { const w = stage.clientWidth; gr.setSize(w, w, false); gCam.aspect = 1; gCam.updateProjectionMatrix(); }
+  new IntersectionObserver(es => { visible = es[es.length - 1].isIntersecting; }, { threshold: 0 }).observe(stage);
+  const measureLabels = () => places.forEach(p => { p.w = p.el.offsetWidth; });
+  function size() { const w = stage.clientWidth; gr.setSize(w, w, false); gCam.aspect = 1; gCam.updateProjectionMatrix(); measureLabels(); }
   addEventListener('resize', size); size();
+  if (document.fonts) document.fonts.ready.then(measureLabels);
+  Q.on(() => { gr.setPixelRatio(Q.pr); dotMat.uniforms.uPR.value = Q.pr; size(); });
 
   const gClock = new THREE.Clock(), tmp = new THREE.Vector3(), camDir = new THREE.Vector3();
+  precompile(gr, gScene, gCam);
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { gClock.getDelta(); return; }
@@ -1186,15 +1215,15 @@ frame();
       tmp.copy(p.pos).applyMatrix4(globe.matrixWorld);
       p.facing = tmp.clone().normalize().dot(camDir.copy(gCam.position).normalize());
       tmp.project(gCam); p.sx = (tmp.x * 0.5 + 0.5) * W; p.sy = (-tmp.y * 0.5 + 0.5) * W;
-      p.el.style.transform = `translate(${p.sx}px, ${p.sy}px) translate(-50%, -160%)`;
+      const tr = `translate(${p.sx.toFixed(1)}px, ${p.sy.toFixed(1)}px) translate(-50%, -160%)`; if (tr !== p.tr) { p.tr = tr; p.el.style.transform = tr; }
     });
-    const order = places.slice().sort((a, b) => (+b.el.classList.contains('on') - +a.el.classList.contains('on')) || ((b.home ? 1 : 0) - (a.home ? 1 : 0)) || (b.facing - a.facing));
+    const order = places.slice().sort((a, b) => ((b.on ? 1 : 0) - (a.on ? 1 : 0)) || ((b.home ? 1 : 0) - (a.home ? 1 : 0)) || (b.facing - a.facing));
     const shown = [];
     order.forEach(p => {
       let vis = p.facing > 0.25;
-      if (vis) for (const q of shown) if (Math.abs(q.sx - p.sx) < (q.el.offsetWidth + p.el.offsetWidth) / 2 + 6 && Math.abs(q.sy - p.sy) < 26) { vis = false; break; }
+      if (vis) for (const q of shown) if (Math.abs(q.sx - p.sx) < (q.w + p.w) / 2 + 6 && Math.abs(q.sy - p.sy) < 26) { vis = false; break; }
       if (vis) shown.push(p);
-      p.el.style.opacity = vis ? Math.min(1, (p.facing - 0.25) * 4) : 0;
+      const op = vis ? Math.min(1, (p.facing - 0.25) * 4).toFixed(2) : '0'; if (op !== p.op) { p.op = op; p.el.style.opacity = op; }
     });
     gr.render(gScene, gCam);
   })();
@@ -1256,7 +1285,7 @@ frame();
   if (!stage) return;
   let rr;
   try { rr = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { return; }
-  probe(rr, 'radio'); rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.05;
+  probe(rr, 'radio'); rr.setPixelRatio(Q.pr); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.05;
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(36, 2, 0.1, 300);
 
   const STATIONS = [
@@ -1474,11 +1503,13 @@ frame();
     cam.updateProjectionMatrix(); sizeWave();
   }
   addEventListener('resize', size); size();
-  let visible = false; new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0 }).observe(stage);
+  Q.on(() => { rr.setPixelRatio(Q.pr); size(); });
+  let visible = false; new IntersectionObserver(es => { visible = es[es.length - 1].isIntersecting; }, { threshold: 0 }).observe(stage);
 
   /* ---------- Animate ---------- */
   const clk = new THREE.Clock(), aimTarget = new THREE.Vector3(), elWorld = new THREE.Vector3(), tmpV = new THREE.Vector3(), dishFocusW = new THREE.Vector3();
   let curAz = 0.6, curEl = 0.5;
+  precompile(rr, sc, cam);
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { clk.getDelta(); return; }
@@ -1553,7 +1584,7 @@ frame();
 
   let rr;
   try { rr = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { stopsEl[0].classList.add('on'); return; }
-  probe(rr, 'warp'); rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.1;
+  probe(rr, 'warp'); rr.setPixelRatio(Q.pr); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.1;
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, 2, 0.1, 900);
   const camBase = new THREE.Vector3(0, 1.9, 6.4), lookAt = new THREE.Vector3(0, -0.15, -6); let shipX = 0.9;
 
@@ -1631,7 +1662,7 @@ frame();
   const streaks = new THREE.LineSegments(sGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
   sc.add(streaks);
   const dotGeo = new THREE.BufferGeometry(); const dotPos = new Float32Array(SN * 3); dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPos, 3));
-  const dots = new THREE.Points(dotGeo, new THREE.PointsMaterial({ size: 1.6 * PR, sizeAttenuation: false, map: softTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#e6ecff' }));
+  const dots = new THREE.Points(dotGeo, new THREE.PointsMaterial({ size: 1.6 * Q.pr, sizeAttenuation: false, map: softTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#e6ecff' }));
   sc.add(dots);
   // Warp tunnel glow
   const tunnel = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 400, 64, 1, true), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide, uniforms: { uT: { value: 0 }, uW: { value: 0 }, uC: { value: new THREE.Color('#7dd3fc') } },
@@ -1711,7 +1742,8 @@ frame();
   /* ---------- Layout ---------- */
   function size() { const w = stage.clientWidth, h = stage.clientHeight; rr.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); shipX = w > 860 ? 0.95 : 0; }
   addEventListener('resize', size); size();
-  let visible = false; new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0 }).observe(stage);
+  Q.on(() => { rr.setPixelRatio(Q.pr); dots.material.size = 1.6 * Q.pr; size(); });
+  let visible = false; new IntersectionObserver(es => { visible = es[es.length - 1].isIntersecting; }, { threshold: 0 }).observe(stage);
 
   /* ---------- Animate ---------- */
   const clk = new THREE.Clock(); let sp = 0, curStop = -1, cardStop = -1, warpS = 0;
@@ -1721,6 +1753,7 @@ frame();
     const p = Math.min(N - 1, Math.max(0, (-r.top) / span * (N - 1)));
     return p;
   }
+  precompile(rr, sc, cam);
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { clk.getDelta(); return; }
