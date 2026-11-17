@@ -659,8 +659,13 @@ let warming = false, lastActivity = performance.now();
 ['pointermove', 'pointerdown', 'wheel', 'scroll', 'keydown', 'touchmove'].forEach(e => addEventListener(e, () => { lastActivity = performance.now(); }, { passive: true }));
 // One small step per material, only while the visitor is idle, so the UFO never visibly stalls
 function warmUp(name, s, draw, onScreen = () => false) {
-  const mats = new Set(); s.traverse(o => { if (o.material) [].concat(o.material).forEach(m => mats.add(m)); });
-  mats.forEach(m => warmQ.push({ name, s, draw, onScreen, only: m }));
+  // Group materials that compile to the same program (same type and features) into one step
+  const groups = new Map();
+  s.traverse(o => { if (o.material) [].concat(o.material).forEach(m => {
+    const k = m.isShaderMaterial ? m.uuid : [m.type, !!m.map, !!m.bumpMap, !!m.envMap, m.clearcoat > 0, m.transmission > 0, m.sheen > 0, m.transparent, m.vertexColors].join();
+    if (!groups.has(k)) groups.set(k, new Set()); groups.get(k).add(m);
+  }); });
+  groups.forEach(g => warmQ.push({ name, s, draw, onScreen, only: g }));
   warmQ.push({ name, s, draw, onScreen, only: null });
   if (!warming) { warming = true; setTimeout(nextWarm, 1500); }
 }
@@ -671,7 +676,7 @@ function nextWarm() {
     if (performance.now() - lastActivity < 1200) { setTimeout(nextWarm, 400); return; }
     const job = warmQ.shift();
     if (job.onScreen()) { setTimeout(nextWarm, 0); return; }   // already drawing for real
-    const saved = []; job.s.traverse(o => { saved.push([o, o.frustumCulled, o.visible]); o.frustumCulled = false; o.visible = !o.material || !job.only || [].concat(o.material).includes(job.only); });
+    const saved = []; job.s.traverse(o => { saved.push([o, o.frustumCulled, o.visible]); o.frustumCulled = false; o.visible = !o.material || !job.only || [].concat(o.material).some(m => job.only.has(m)); });
     const t0 = performance.now();
     try { job.draw(); } catch (e) {}
     saved.forEach(([o, f, v]) => { o.frustumCulled = f; o.visible = v; });
