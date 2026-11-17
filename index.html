@@ -1782,6 +1782,7 @@ frame();
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { clk.getDelta(); return; }
+    const tL = PERF ? performance.now() : 0;
     const dt = Math.min(clk.getDelta(), 0.05), t = clk.elapsedTime;
     const target = stopState(); sp += (target - sp) * (reduce ? 1 : 1 - Math.pow(0.0008, dt));
     let i = Math.floor(sp), f = sp - i; if (i >= N - 1) { i = N - 1; f = 0; }
@@ -1835,7 +1836,8 @@ frame();
     flash.style.opacity = reduce ? 0 : (inWarp ? Math.exp(-Math.pow((w - 0.5) / 0.07, 2)) * 0.9 : 0);
     vig.style.opacity = 0.55 + warp * 0.4;
 
-    rr.render(sc, cam);
+    const tR = PERF ? performance.now() : 0; rr.render(sc, cam);
+    if (PERF) { const W = window.__warpT = window.__warpT || { pre: 0, render: 0, n: 0 }; W.n++; W.pre = Math.max(W.pre, Math.round(tR - tL)); W.render = Math.max(W.render, Math.round(performance.now() - tR)); }
   })();
 })();
 </script>
