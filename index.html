@@ -651,7 +651,27 @@ const Q = { pr: Math.min(window.devicePixelRatio || 1, 1.5), fixed: /[?&]perf=(f
   on(f) { this.subs.push(f); }, drop() { if (this.pr <= 1) return; this.pr = Math.max(1, +(this.pr - 0.25).toFixed(2)); this.subs.forEach(f => f()); } };
 if (PERF) window.__q = Q;
 // Compile every shader up front in the background, so scrolling into a section never freezes on a compile
-const precompile = (r, s, c) => { if (r.compileAsync) r.compileAsync(s, c).catch(() => {}); else r.compile(s, c); };
+const precompile = (r, s, c) => r.compileAsync ? r.compileAsync(s, c).catch(() => {}) : Promise.resolve(r.compile(s, c));
+// GPU drivers (Metal especially) finish building pipelines on the first real draw, so draw each scene once, offscreen
+// and in idle time, before you scroll to it. Everything is forced visible and unculled for that one hidden draw.
+const warmQ = [];
+let warming = false;
+function warmUp(name, s, draw) {
+  warmQ.push({ name, s, draw });
+  if (!warming) { warming = true; nextWarm(); }
+}
+function nextWarm() {
+  const job = warmQ.shift(); if (!job) { warming = false; return; }
+  const idle = window.requestIdleCallback || (f => setTimeout(f, 200));
+  idle(() => {
+    const saved = []; job.s.traverse(o => { saved.push([o, o.frustumCulled, o.visible]); o.frustumCulled = false; o.visible = true; });
+    const t0 = performance.now();
+    try { job.draw(); } catch (e) {}
+    saved.forEach(([o, f, v]) => { o.frustumCulled = f; o.visible = v; });
+    if (PERF) (window.__warm = window.__warm || {})[job.name] = Math.round(performance.now() - t0);
+    setTimeout(nextWarm, 120);
+  }, { timeout: 2500 });
+}
 renderer.setPixelRatio(Q.pr); probe(renderer, 'main');
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1076,7 +1096,12 @@ function frame() {
   const needBloom = heroOn || hp > 0.002; bloom.enabled = needBloom; nanPass.enabled = needBloom;
   composer.render();
 }
-precompile(renderer, nebScene, nebCam); precompile(renderer, scene, camera);
+Promise.all([precompile(renderer, nebScene, nebCam), precompile(renderer, scene, camera)]).then(() => warmUp('main', scene, () => {
+  const b = bloom.enabled, n = nanPass.enabled;
+  bloom.enabled = nanPass.enabled = false; composer.render();
+  bloom.enabled = nanPass.enabled = true; composer.render();
+  bloom.enabled = b; nanPass.enabled = n;
+}));
 frame();
 
 /* ================= 3D GLOBE: places I've been ================= */
@@ -1197,7 +1222,7 @@ frame();
   Q.on(() => { gr.setPixelRatio(Q.pr); dotMat.uniforms.uPR.value = Q.pr; size(); });
 
   const gClock = new THREE.Clock(), tmp = new THREE.Vector3(), camDir = new THREE.Vector3();
-  precompile(gr, gScene, gCam);
+  precompile(gr, gScene, gCam).then(() => warmUp('globe', gScene, () => gr.render(gScene, gCam)));
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { gClock.getDelta(); return; }
@@ -1509,7 +1534,7 @@ frame();
   /* ---------- Animate ---------- */
   const clk = new THREE.Clock(), aimTarget = new THREE.Vector3(), elWorld = new THREE.Vector3(), tmpV = new THREE.Vector3(), dishFocusW = new THREE.Vector3();
   let curAz = 0.6, curEl = 0.5;
-  precompile(rr, sc, cam);
+  precompile(rr, sc, cam).then(() => warmUp('radio', sc, () => rr.render(sc, cam)));
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { clk.getDelta(); return; }
@@ -1753,7 +1778,7 @@ frame();
     const p = Math.min(N - 1, Math.max(0, (-r.top) / span * (N - 1)));
     return p;
   }
-  precompile(rr, sc, cam);
+  precompile(rr, sc, cam).then(() => warmUp('warp', sc, () => rr.render(sc, cam)));
   (function loop() {
     requestAnimationFrame(loop);
     if (!visible || document.hidden) { clk.getDelta(); return; }
