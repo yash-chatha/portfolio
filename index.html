@@ -616,6 +616,27 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
+/* ===== Perf probe: only active with ?perf in the URL ===== */
+const PERF = /[?&]perf\b/.test(location.search);
+const perfS = { r: {}, frames: 0, intervals: [] };
+if (PERF) {
+  window.__perf = {
+    reset() { perfS.r = {}; perfS.frames = 0; perfS.intervals = []; },
+    report() {
+      const n = Math.max(1, perfS.frames), out = {};
+      for (const k in perfS.r) out[k] = +(perfS.r[k] / n).toFixed(2);
+      const iv = perfS.intervals.slice().sort((a, b) => a - b), med = iv.length ? iv[iv.length >> 1] : 0;
+      return { frames: perfS.frames, msPerFrameByCanvas: out, totalGpuMs: +Object.values(out).reduce((a, b) => a + b, 0).toFixed(2), medianFrameIntervalMs: +med.toFixed(1), p90: +(iv[Math.floor(iv.length * 0.9)] || 0).toFixed(1) };
+    }
+  };
+  let last = 0; (function tick(now) { requestAnimationFrame(tick); perfS.frames++; if (last) perfS.intervals.push(now - last); if (perfS.intervals.length > 600) perfS.intervals.shift(); last = now; })(0);
+}
+function probe(r, name) {
+  if (!PERF) return;
+  const gl = r.getContext(), orig = r.render.bind(r);
+  r.render = (a, b) => { const t0 = performance.now(); orig(a, b); gl.finish(); perfS.r[name] = (perfS.r[name] || 0) + performance.now() - t0; };
+}
+
 const canvas = document.getElementById('space');
 const hero = document.getElementById('home');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -624,7 +645,7 @@ try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 catch (e) { document.documentElement.classList.add('no-webgl'); throw e; }
 
 const PR = Math.min(window.devicePixelRatio || 1, 2);
-renderer.setPixelRatio(PR);
+renderer.setPixelRatio(PR); probe(renderer, 'main');
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -1038,7 +1059,7 @@ frame();
   if (!stage) return;
   let gr;
   try { gr = new THREE.WebGLRenderer({ canvas: gCanvas, antialias: true, alpha: true }); } catch (e) { return; }
-  gr.setPixelRatio(PR); gr.outputColorSpace = THREE.SRGBColorSpace;
+  probe(gr, 'globe'); gr.setPixelRatio(PR); gr.outputColorSpace = THREE.SRGBColorSpace;
   const gScene = new THREE.Scene(), gCam = new THREE.PerspectiveCamera(30, 1, 0.1, 100); gCam.position.set(0, 0, 6.2);
   const globe = new THREE.Group(); gScene.add(globe);
   const R = 1.45;
@@ -1234,7 +1255,7 @@ frame();
   if (!stage) return;
   let rr;
   try { rr = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { return; }
-  rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.05;
+  probe(rr, 'radio'); rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.05;
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(36, 2, 0.1, 300);
 
   const STATIONS = [
@@ -1531,7 +1552,7 @@ frame();
 
   let rr;
   try { rr = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { stopsEl[0].classList.add('on'); return; }
-  rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.1;
+  probe(rr, 'warp'); rr.setPixelRatio(PR); rr.outputColorSpace = THREE.SRGBColorSpace; rr.toneMapping = THREE.ACESFilmicToneMapping; rr.toneMappingExposure = 1.1;
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, 2, 0.1, 900);
   const camBase = new THREE.Vector3(0, 1.9, 6.4), lookAt = new THREE.Vector3(0, -0.15, -6); let shipX = 0.9;
 
