@@ -150,6 +150,58 @@ main,.nav,.socials,.toast{position:relative;z-index:1}
 @keyframes tw{0%,100%{opacity:1}50%{opacity:.45}}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 
+/* Mission log */
+.flight{position:relative;margin-top:10px}
+.traj{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.traj-ghost{fill:none;stroke:rgba(255,255,255,.12);stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round}
+.traj-live{fill:none;stroke-width:3;stroke-linecap:round}
+.ship{position:absolute;left:0;top:0;width:30px;height:48px;margin:-24px 0 0 -15px;pointer-events:none;will-change:transform;z-index:3;filter:drop-shadow(0 0 10px rgba(34,211,238,.6))}
+.ship svg{width:100%;height:100%;display:block}
+.ship .flame{transform-origin:20px 46px;animation:flick .18s ease-in-out infinite alternate}
+@keyframes flick{from{transform:scaleY(.8)}to{transform:scaleY(1.15)}}
+.missions{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:56px}
+.mission{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 120px minmax(0,1fr);align-items:center}
+.mission .mcard{grid-column:1}
+.mission:nth-child(even) .mcard{grid-column:3}
+.mission .node{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#05060F;border:2px solid rgba(255,255,255,.22);z-index:2;transition:border-color .5s,box-shadow .5s,background .5s}
+.mission .node::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1px solid var(--mc);opacity:0;transform:scale(.6);transition:opacity .5s,transform .5s}
+.mission.lit .node{border-color:var(--mc);background:var(--mc);box-shadow:0 0 18px var(--mc)}
+.mission.lit .node::after{opacity:.6;transform:scale(1);animation:nodePulse 2.4s ease-out infinite}
+@keyframes nodePulse{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.8);opacity:0}}
+.mcard{padding:24px 26px;position:relative;z-index:1}
+.mcard::before{content:"";position:absolute;top:50%;width:46px;height:1px;background:linear-gradient(90deg,transparent,var(--mc));opacity:.5}
+.mission:nth-child(odd) .mcard::before{right:-46px}
+.mission:nth-child(even) .mcard::before{left:-46px;transform:scaleX(-1)}
+.m-head{display:flex;align-items:center;gap:16px}
+.patch{width:72px;height:72px;flex:none;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--mc) 40%,transparent))}
+.patch svg{width:100%;height:100%;display:block}
+.patch .ring-text{font-family:'Space Grotesk',sans-serif;font-size:8.4px;font-weight:700;letter-spacing:1.6px;fill:#fff}
+.patch svg .spin{transform-origin:50px 50px}
+.mission.lit .patch svg .spin{animation:ringSpin 26s linear infinite}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+.m-meta{display:block;font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mc)}
+.mcard h3{margin:4px 0 2px;font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.015em}
+.m-org{display:block;font-size:14px;color:var(--muted)}
+.m-line{margin:16px 0 0;color:var(--text-2);font-size:15.5px;line-height:1.65}
+.m-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:14px;min-height:40px;padding:0 14px;border-radius:999px;font-size:13.5px;font-weight:600;color:#fff;background:rgba(255,255,255,.05);border:1px solid color-mix(in srgb,var(--mc) 45%,transparent);transition:background .2s}
+.m-toggle:hover{background:rgba(255,255,255,.1)}
+.m-toggle svg{width:16px;height:16px;transition:transform .35s var(--ease)}
+.m-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.m-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.m-body>div{overflow:hidden}
+.mission.open .m-body{grid-template-rows:1fr}
+.m-body ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.m-body li{position:relative;padding-left:20px;color:var(--text-2);font-size:15px;line-height:1.6}
+.m-body li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--mc);box-shadow:0 0 8px var(--mc)}
+@media (max-width:860px){
+  .mission{grid-template-columns:48px minmax(0,1fr)}
+  .mission .mcard,.mission:nth-child(even) .mcard{grid-column:2}
+  .mission .node{left:24px}
+  .mcard::before{display:none}
+  .patch{width:58px;height:58px}
+  .missions{gap:34px}
+}
+
 /* Deep-space radio */
 .music-lede{max-width:600px;margin:16px 0 0;color:var(--text-2);font-size:17px;line-height:1.7}
 .radio-stage{position:relative;height:clamp(480px,66vh,720px);width:min(1400px,100%);margin:6px auto 0}
@@ -270,6 +322,7 @@ footer a:hover{color:#fff}
   <a class="brand" href="#home"><span class="dot" aria-hidden="true"></span>Yash Chatha</a>
   <ul class="nav-links" id="nav-links">
     <li><a href="#about">About</a></li>
+    <li><a href="#missions">Experience</a></li>
     <li><a href="#music">On repeat</a></li>
     <li><a href="#toolkit">Toolkit</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -333,6 +386,106 @@ footer a:hover{color:#fff}
         </div>
       </div>
     </article>
+  </div>
+</section>
+
+<!-- ================= EXPERIENCE: MISSION LOG ================= -->
+<section class="section" id="missions" aria-labelledby="missions-title">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="kicker">Mission log</span><h2 class="h2" id="missions-title">Flight path so far</h2>
+      <p class="music-lede">Every stop on the way here. Open a mission to see the details.</p>
+    </div>
+    <div class="flight" id="flight">
+      <svg class="traj" id="traj" aria-hidden="true">
+        <defs>
+          <linearGradient id="trajGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset=".5" stop-color="#22D3EE"/><stop offset="1" stop-color="#FF8A65"/></linearGradient>
+          <filter id="trajGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <path id="traj-ghost" class="traj-ghost"/>
+        <path id="traj-live" class="traj-live" stroke="url(#trajGrad)" filter="url(#trajGlow)"/>
+      </svg>
+      <div class="ship" id="ship" aria-hidden="true">
+        <svg viewBox="0 0 40 64">
+          <defs><radialGradient id="flame" cx=".5" cy=".2" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#A5F3FC"/><stop offset="1" stop-color="rgba(34,211,238,0)"/></radialGradient></defs>
+          <ellipse class="flame" cx="20" cy="54" rx="6" ry="10" fill="url(#flame)"/>
+          <path d="M20 2c7 7 10 17 10 28v12H10V30C10 19 13 9 20 2Z" fill="#E8EAF2"/>
+          <path d="M20 2c7 7 10 17 10 28v12h-4V30c0-10-2-19-6-26Z" fill="#B8BDD0"/>
+          <circle cx="20" cy="22" r="4.5" fill="#22D3EE" stroke="#0B1030" stroke-width="2"/>
+          <path d="M10 32 3 42v4l7-3ZM30 32l7 10v4l-7-3Z" fill="#8B5CF6"/>
+          <rect x="15" y="42" width="10" height="4" rx="1" fill="#5B5F78"/>
+        </svg>
+      </div>
+      <ol class="missions" id="mission-list">
+        <li class="mission" data-c="#C4B5FD" data-icon="cap" data-label="CORNELL" data-num="01">
+          <span class="node" aria-hidden="true"></span>
+          <article class="panel mcard reveal">
+            <div class="m-head"><span class="patch" aria-hidden="true"></span>
+              <div><span class="m-meta">Mission 01 · Aug 2023 to Dec 2026</span><h3>Launched at Cornell</h3><span class="m-org">B.S. Computer Science · Minor in Data Science and AI</span></div>
+            </div>
+            <p class="m-line">Started my CS degree at Cornell, building the foundation for everything that followed.</p>
+            <button class="m-toggle" aria-expanded="false">Mission details<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="m-body"><div><ul>
+              <li>Coursework across machine learning, deep learning, AI reasoning, operating systems, computer networks and functional programming.</li>
+              <li>Reproduced the Graph Attention Networks paper in PyTorch for Deep Learning.</li>
+            </ul></div></div>
+          </article>
+        </li>
+        <li class="mission" data-c="#22D3EE" data-icon="chat" data-label="CONVOKIT" data-num="02">
+          <span class="node" aria-hidden="true"></span>
+          <article class="panel mcard reveal">
+            <div class="m-head"><span class="patch" aria-hidden="true"></span>
+              <div><span class="m-meta">Mission 02 · Dec 2023 to May 2025</span><h3>Undergraduate Researcher</h3><span class="m-org">Cornell ConvoKit · NLP research</span></div>
+            </div>
+            <p class="m-line">Studied how online conversations go wrong, building NLP tools for Cornell's open source ConvoKit toolkit.</p>
+            <button class="m-toggle" aria-expanded="false">Mission details<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="m-body"><div><ul>
+              <li>Built a conflict-detection system using LLM-based prompting and engineered conversational features.</li>
+              <li>Worked on toxicity prediction features.</li>
+              <li>Contributed annotated datasets and infrastructure upgrades to the ConvoKit 3.1.0 release.</li>
+            </ul></div></div>
+          </article>
+        </li>
+        <li class="mission" data-c="#FF8A65" data-icon="cloud" data-label="AMAZON" data-num="03">
+          <span class="node" aria-hidden="true"></span>
+          <article class="panel mcard reveal">
+            <div class="m-head"><span class="patch" aria-hidden="true"></span>
+              <div><span class="m-meta">Mission 03 · Summer 2025</span><h3>Software Engineering Intern</h3><span class="m-org">Amazon · Global Procurement Technology</span></div>
+            </div>
+            <p class="m-line">Built an LLM-powered suggestion API on Amazon Bedrock for procurement teams.</p>
+            <button class="m-toggle" aria-expanded="false">Mission details<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="m-body"><div><ul>
+              <li>Took the suggestion service from design to production on Amazon Bedrock.</li>
+              <li>Improved prompt and model routing so each request reaches the model best suited to it.</li>
+              <li>Standardized the context passed across decision routes so suggestions stay consistent.</li>
+            </ul></div></div>
+          </article>
+        </li>
+        <li class="mission" data-c="#8B5CF6" data-icon="chart" data-label="META" data-num="04">
+          <span class="node" aria-hidden="true"></span>
+          <article class="panel mcard reveal">
+            <div class="m-head"><span class="patch" aria-hidden="true"></span>
+              <div><span class="m-meta">Mission 04 · Summer 2026</span><h3>Software Engineering Intern</h3><span class="m-org">Meta · Ads Manager Platform · Menlo Park</span></div>
+            </div>
+            <p class="m-line">Rebuilt core editing tools in Ads Manager and proved them out with A/B experiments.</p>
+            <button class="m-toggle" aria-expanded="false">Mission details<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="m-body"><div><ul>
+              <li>Rebuilt the selection state behind the Bulk Edit Modal in React and Flux.</li>
+              <li>Ran A/B experiments to measure each change before rollout, including a sample ratio mismatch investigation.</li>
+              <li>Worked on loading for an AI recommendations surface and wrote a product strategy proposal for the team.</li>
+            </ul></div></div>
+          </article>
+        </li>
+        <li class="mission next" data-c="#6EE7B7" data-icon="star" data-label="NEXT" data-num="05">
+          <span class="node" aria-hidden="true"></span>
+          <article class="panel mcard reveal">
+            <div class="m-head"><span class="patch" aria-hidden="true"></span>
+              <div><span class="m-meta">Next mission · Dec 2026</span><h3>Graduation, then full-time</h3><span class="m-org">Cornell University</span></div>
+            </div>
+            <p class="m-line">Graduating from Cornell and starting my career as a full-time software engineer.</p>
+          </article>
+        </li>
+      </ol>
+    </div>
   </div>
 </section>
 
@@ -1390,6 +1543,74 @@ frame();
   })();
 })();
 
+/* ================= EXPERIENCE: MISSION LOG ================= */
+(function missionLog() {
+  const flight = document.getElementById('flight'); if (!flight) return;
+  const ghost = document.getElementById('traj-ghost'), live = document.getElementById('traj-live'), ship = document.getElementById('ship');
+  const items = Array.from(flight.querySelectorAll('.mission'));
+  const ICONS = {
+    cap: '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+    chat: '<path d="M21 14a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/><path d="M8.5 10h.01M12.5 10h.01M16.5 10h.01"/>',
+    cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="m12 11 1 2 2 .5-2 .5-1 2-1-2-2-.5 2-.5Z"/>',
+    chart: '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>',
+    star: '<path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7Z"/>'
+  };
+  // Original mission patches
+  items.forEach((li, i) => {
+    const c = li.dataset.c, id = 'arc' + i, label = `MISSION ${li.dataset.num} · ${li.dataset.label} ·`;
+    li.style.setProperty('--mc', c);
+    li.querySelector('.patch').innerHTML = `<svg viewBox="0 0 100 100">
+      <defs><radialGradient id="pf${i}" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#1b1f45"/><stop offset="1" stop-color="#05060f"/></radialGradient>
+      <path id="${id}" d="M50 50 m-38 0 a38 38 0 1 1 76 0 a38 38 0 1 1 -76 0"/></defs>
+      <circle cx="50" cy="50" r="48" fill="#0a0c1c" stroke="${c}" stroke-width="3"/>
+      <circle cx="50" cy="50" r="43.5" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-dasharray="1.5 2.5"/>
+      <g class="spin"><text class="ring-text"><textPath href="#${id}" startOffset="0">${label} ${label}</textPath></text></g>
+      <circle cx="50" cy="50" r="30" fill="url(#pf${i})" stroke="${c}" stroke-width="1.5"/>
+      <g transform="translate(36 36) scale(1.17)" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[li.dataset.icon]}</g>
+      <circle cx="22" cy="30" r="1.2" fill="#fff"/><circle cx="78" cy="68" r="1" fill="#fff"/><circle cx="70" cy="26" r=".8" fill="#fff"/>
+    </svg>`;
+  });
+  // Details toggles
+  items.forEach((li, i) => {
+    const btn = li.querySelector('.m-toggle'), body = li.querySelector('.m-body'); if (!btn) return;
+    body.id = 'm-body-' + i; btn.setAttribute('aria-controls', body.id);
+    btn.addEventListener('click', () => { const o = li.classList.toggle('open'); btn.setAttribute('aria-expanded', o); });
+  });
+
+  // Build the trajectory through each waypoint
+  let pts = [], len = 0, prog = 0;
+  function build() {
+    const fr = flight.getBoundingClientRect(), narrow = innerWidth <= 860, amp = narrow ? 14 : 46;
+    pts = items.map(li => { const n = li.querySelector('.node').getBoundingClientRect(); return { x: n.left + n.width / 2 - fr.left, y: n.top + n.height / 2 - fr.top }; });
+    const start = { x: pts[0].x, y: Math.max(0, pts[0].y - 90) };
+    let d = `M${start.x} ${start.y} L${pts[0].x} ${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i], dy = b.y - a.y, s = i % 2 ? 1 : -1;
+      d += ` C${a.x + amp * s} ${a.y + dy * 0.35} ${b.x + amp * s} ${b.y - dy * 0.35} ${b.x} ${b.y}`;
+    }
+    ghost.setAttribute('d', d); live.setAttribute('d', d);
+    len = live.getTotalLength(); live.style.strokeDasharray = len; update(true);
+  }
+  function update(force) {
+    const fr = flight.getBoundingClientRect(), mid = innerHeight * 0.55;
+    const firstY = fr.top + Math.max(0, pts[0].y - 90), lastY = fr.top + pts[pts.length - 1].y;
+    const target = Math.min(1, Math.max(0, (mid - firstY) / Math.max(1, lastY - firstY)));
+    prog = (force || reduce) ? target : prog + (target - prog) * 0.12;
+    live.style.strokeDashoffset = len * (1 - prog);
+    const L = prog * len, p = live.getPointAtLength(L), q = live.getPointAtLength(Math.min(len, L + 2));
+    const ang = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI + 90;
+    ship.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${prog >= 0.999 ? 0 : ang}deg)`;
+    ship.style.opacity = prog > 0.002 ? 1 : 0.6;
+    items.forEach((li, i) => li.classList.toggle('lit', pts[i].y <= p.y + 4));
+    return Math.abs(target - prog) > 0.0005;
+  }
+  let raf = 0;
+  function tick() { raf = 0; if (update(false)) raf = requestAnimationFrame(tick); }
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
+  new ResizeObserver(() => build()).observe(flight);
+  addEventListener('resize', build);
+  build();
+})();
 </script>
 </body>
 </html>
