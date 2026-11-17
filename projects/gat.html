@@ -147,8 +147,8 @@ body.standalone{overflow:auto;background:radial-gradient(1200px 640px at 18% 8%,
     const others = K.e.filter(x => x[0] !== K.node), self = K.e.find(x => x[0] === K.node);
     const n = others.length, R = n === 1 ? 175 : 185;
     others.forEach((x, k) => {
-      const a = -Math.PI / 2 + (n === 1 ? -0.9 : (k - (n - 1) / 2) * (Math.PI * 1.45 / Math.max(1, n - 1)) * (n === 2 ? 0.7 : 1)) + (n > 2 ? 0 : 0);
-      const px = C.x + Math.cos(a) * R * 1.12, py = C.y + Math.sin(a) * R * 0.92 + (n === 1 ? 0 : 0);
+      const a = -2.3 + k * (Math.PI * 2 / Math.max(n, 1)) + (n === 3 ? 0.25 : 0);
+      const px = C.x + Math.cos(a) * R * 1.12, py = C.y + Math.sin(a) * R * 0.92;
       const w = x[2], col = CLS[x[1]];
       el('line', { x1: px, y1: py, x2: C.x, y2: C.y, stroke: col, 'stroke-width': 2 + w * 26, opacity: 0.08 + w * 0.5, filter: 'url(#glow)' }, E);
       el('line', { x1: px, y1: py, x2: C.x, y2: C.y, stroke: col, 'stroke-width': 0.8 + w * 7, opacity: 0.35 + w * 1.2, 'stroke-linecap': 'round' }, E);
