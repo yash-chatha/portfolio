@@ -198,6 +198,21 @@ main,.nav,.socials,.toast{position:relative;z-index:1}
 .proj-embed iframe{display:block;width:100%;aspect-ratio:1600/1064;border:0;border-radius:20px;background:transparent}
 .proj-embed iframe.tall{aspect-ratio:1600/1000}
 .proj+.proj{margin-top:96px}
+.proj-embed.poster{padding:12px}
+.poster-open{appearance:none;display:block;width:100%;padding:0;margin:0;border:0;background:none;cursor:zoom-in;position:relative;border-radius:18px;overflow:hidden}
+.poster-open img{display:block;width:100%;height:auto;transition:transform .6s var(--ease)}
+.poster-open:hover img{transform:scale(1.012)}
+.poster-open:focus-visible{outline:2px solid var(--cyan-soft);outline-offset:4px}
+.poster-hint{position:absolute;right:16px;bottom:16px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;background:rgba(8,10,26,.78);border:1px solid rgba(255,255,255,.14);opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s}
+.poster-open:hover .poster-hint,.poster-open:focus-visible .poster-hint{opacity:1;transform:none}
+.poster-dlg{width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:rgba(3,4,12,.94);color:var(--text)}
+.poster-dlg::backdrop{background:rgba(3,4,12,.6)}
+.poster-scroll{width:100%;height:100%;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:64px 24px 48px;box-sizing:border-box}
+.poster-scroll img{width:min(100%,1700px);height:auto;cursor:zoom-in;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.poster-dlg.zoom .poster-scroll{justify-content:flex-start}
+.poster-dlg.zoom .poster-scroll img{width:2600px;max-width:none;cursor:zoom-out}
+.poster-close{position:fixed;top:16px;right:20px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(20,22,44,.85);color:#fff;font-size:16px;cursor:pointer;z-index:2}
+.poster-tip{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);margin:0;font-size:12px;color:var(--muted)}
 .proj-small{display:none;margin:14px 0 0;font-size:14px;color:var(--muted)}
 .proj-small a{color:var(--cyan-soft);text-decoration:underline;text-underline-offset:3px}
 @media (max-width:860px){.proj-top{flex-direction:column;align-items:flex-start}.proj-small{display:block}.proj-embed{padding:6px;border-radius:20px}.proj-embed iframe{border-radius:14px}}
@@ -492,19 +507,38 @@ footer a:hover{color:#fff}
     <article class="proj reveal" aria-label="Graph Attention Networks reimplementation">
       <div class="proj-top">
         <div class="proj-info">
-          <p class="proj-sub">A reimplementation done for the Deep Learning class at Cornell. Pick a misclassified paper to see which neighbors the model listened to, using the real attention weights from our runs.</p>
+          <p class="proj-sub">A reimplementation done for the Deep Learning class at Cornell.</p>
           <div class="tags"><span class="tag">PyTorch</span><span class="tag">PyTorch Geometric</span><span class="tag">Graph neural networks</span><span class="tag">Google Colab</span></div>
         </div>
         <div class="proj-links">
           <a class="btn btn-ghost" href="https://github.com/yash-chatha/gat-reimplementation" target="_blank" rel="noopener">View the code <span aria-hidden="true">↗</span></a>
-          <a class="btn btn-ghost" href="projects/gat.html" target="_blank" rel="noopener">Open full screen <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-ghost" href="projects/media/gat-poster.pdf" target="_blank" rel="noopener">Poster PDF <span aria-hidden="true">↗</span></a>
         </div>
       </div>
-      <div class="proj-embed">
-        <iframe class="tall" src="projects/gat.html" title="Interactive explainer: graph attention, shown as a constellation of papers" loading="lazy"></iframe>
+      <div class="proj-embed poster">
+        <button class="poster-open" type="button" aria-haspopup="dialog" aria-label="Open the poster full size">
+          <img src="projects/media/gat-poster.jpg" srcset="projects/media/gat-poster.jpg 1400w, projects/media/gat-poster-large.jpg 3000w" sizes="(max-width: 1180px) 100vw, 1140px" width="1400" height="934" loading="lazy" alt="Poster: Don't Trust All Your Neighbors! Analyzing Graph Attention Networks. CS 4782 Deep Learning, Cornell University, Spring 2026, by Yash Chatha, Jerry Ji and Leon Huang. It covers the baseline reproduction (Cora 83.22% against the paper's 83.0%, CiteSeer 70.94% against 72.5%), the model and training setup, accuracy as training labels shrink, TinyGAT distillation, how often the model is confidently wrong, conclusions and future work.">
+          <span class="poster-hint" aria-hidden="true">View full size ⤢</span>
+        </button>
       </div>
-      <p class="proj-small">This explainer is interactive and works best on a larger screen. <a href="projects/gat.html" target="_blank" rel="noopener">Open it full screen</a>.</p>
     </article>
+    <dialog class="poster-dlg" id="poster-dlg" aria-label="GAT poster, full size">
+      <button class="poster-close" type="button" aria-label="Close the poster">✕</button>
+      <div class="poster-scroll"><img data-src="projects/media/gat-poster-large.jpg" width="3000" height="2000" alt="Poster: Don't Trust All Your Neighbors! Analyzing Graph Attention Networks. CS 4782 Deep Learning, Cornell University, Spring 2026, by Yash Chatha, Jerry Ji and Leon Huang. It covers the baseline reproduction (Cora 83.22% against the paper's 83.0%, CiteSeer 70.94% against 72.5%), the model and training setup, accuracy as training labels shrink, TinyGAT distillation, how often the model is confidently wrong, conclusions and future work."></div>
+      <p class="poster-tip">Click the poster to zoom</p>
+    </dialog>
+    <script>
+    (function () {
+      const dlg = document.getElementById('poster-dlg'), open = document.querySelector('.poster-open');
+      if (!dlg || !open || !dlg.showModal) return;
+      const img = dlg.querySelector('img');
+      open.addEventListener('click', () => { if (!img.src) img.src = img.dataset.src; dlg.classList.remove('zoom'); dlg.showModal(); });
+      dlg.querySelector('.poster-close').addEventListener('click', () => dlg.close());
+      img.addEventListener('click', () => dlg.classList.toggle('zoom'));
+      dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', () => open.focus());
+    })();
+    </script>
   </div>
 </section>
 
