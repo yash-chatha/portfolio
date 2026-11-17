@@ -449,7 +449,7 @@ window.CONFIG = {
   email: '10yashc@gmail.com',
   linkedin: 'https://www.linkedin.com/in/yc05/',
   github: 'https://github.com/yash-chatha',
-  resume: '#'
+  resume: 'https://yash-chatha.github.io/portfolio/resume.pdf'
 };
 
 (function () {
@@ -458,7 +458,7 @@ window.CONFIG = {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const C = window.CONFIG;
 
-  $$('[data-link]').forEach(a => { if (C[a.dataset.link]) a.href = C[a.dataset.link]; });
+  $$('[data-link]').forEach(a => { if (C[a.dataset.link]) a.href = C[a.dataset.link]; if (a.dataset.link === 'resume') { a.target = '_blank'; a.rel = 'noopener noreferrer'; } });
   $$('[data-email]').forEach(el => el.textContent = C.email);
 
   // Toast + copy
