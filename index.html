@@ -186,6 +186,21 @@ main,.nav,.socials,.toast{position:relative;z-index:1}
 @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 @media (max-width:760px){.stop{left:16px;right:16px;width:auto;bottom:20px;padding:20px}.rail{top:auto;bottom:auto;top:84px;right:12px}.rail button span{display:none}.warp-hint{display:none}}
 @media (prefers-reduced-motion:reduce){.stop{transition:opacity .2s}}
+/* Projects */
+.proj-top{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;margin-bottom:26px}
+.proj-info{max-width:640px}
+.proj-name{font-size:clamp(28px,3vw,36px);line-height:1.1;letter-spacing:-.02em;font-weight:600;margin:0}
+.proj-sub{color:var(--text-2);margin:0 0 16px;font-size:16.5px}
+.proj-links{display:flex;gap:12px;flex-wrap:wrap;flex:none}
+.proj-embed{position:relative;border-radius:28px;padding:10px;background:linear-gradient(160deg,rgba(139,92,246,.10),rgba(34,211,238,.05));border:1px solid var(--border);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06)}
+.proj-embed::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;background:radial-gradient(600px 160px at 15% 0%,rgba(165,243,252,.16),transparent 70%)}
+.proj-embed iframe{display:block;width:100%;aspect-ratio:1600/1064;border:0;border-radius:20px;background:transparent}
+.proj-embed iframe.tall{aspect-ratio:1600/1000}
+.proj+.proj{margin-top:96px}
+.proj-small{display:none;margin:14px 0 0;font-size:14px;color:var(--muted)}
+.proj-small a{color:var(--cyan-soft);text-decoration:underline;text-underline-offset:3px}
+@media (max-width:860px){.proj-top{flex-direction:column;align-items:flex-start}.proj-small{display:block}.proj-embed{padding:6px;border-radius:20px}.proj-embed iframe{border-radius:14px}}
+
 /* Deep-space radio */
 .music-lede{max-width:600px;margin:16px 0 0;color:var(--text-2);font-size:17px;line-height:1.7}
 .radio-stage{position:relative;height:clamp(480px,66vh,720px);width:min(1400px,100%);margin:6px auto 0}
@@ -307,6 +322,7 @@ footer a:hover{color:#fff}
   <ul class="nav-links" id="nav-links">
     <li><a href="#about">About</a></li>
     <li><a href="#missions">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
     <li><a href="#music">On repeat</a></li>
     <li><a href="#toolkit">Toolkit</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -449,6 +465,45 @@ footer a:hover{color:#fff}
       </nav>
       <div class="warp-hint" id="warp-hint" aria-hidden="true">Scroll to jump <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m6 13 6 6 6-6"/></svg></div>
     </div>
+  </div>
+</section>
+
+<!-- ================= PROJECTS ================= -->
+<section class="section" id="projects" aria-labelledby="projects-title">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="kicker">Projects</span><h2 class="h2" id="projects-title">Things I've built</h2></div>
+    <article class="proj reveal" aria-label="OCaml Trader">
+      <div class="proj-top">
+        <div class="proj-info">
+          <p class="proj-sub">A team project with four classmates for Cornell's functional programming course. Explore it below: hover the steps, or click BUY or SELL to trace the real code path.</p>
+          <div class="tags"><span class="tag">OCaml</span><span class="tag">Lwt</span><span class="tag">Cohttp</span><span class="tag">Finnhub API</span><span class="tag">CSV persistence</span></div>
+        </div>
+        <div class="proj-links">
+          <a class="btn btn-ghost" href="https://github.com/yash-chatha/OCaml-Trader" target="_blank" rel="noopener">View the code <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-ghost" href="projects/ocaml-trader.html" target="_blank" rel="noopener">Open full screen <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="proj-embed">
+        <iframe src="projects/ocaml-trader.html" title="Interactive explainer: the life of a trade in OCaml Trader" loading="lazy"></iframe>
+      </div>
+      <p class="proj-small">This explainer is interactive and works best on a larger screen. <a href="projects/ocaml-trader.html" target="_blank" rel="noopener">Open it full screen</a>.</p>
+    </article>
+    <article class="proj reveal" aria-label="Graph Attention Networks reimplementation">
+      <div class="proj-top">
+        <div class="proj-info">
+          <p class="proj-sub">A deep learning reimplementation with Jerry Ji and Leon Huang for CS 4782 at Cornell. Pick a misclassified paper to see which neighbors the model listened to, using the real attention weights from our runs.</p>
+          <div class="tags"><span class="tag">PyTorch</span><span class="tag">PyTorch Geometric</span><span class="tag">Graph neural networks</span><span class="tag">Google Colab</span></div>
+        </div>
+        <div class="proj-links">
+          <a class="btn btn-ghost" href="https://github.com/yash-chatha/gat-reimplementation" target="_blank" rel="noopener">View the code <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-ghost" href="projects/gat.html" target="_blank" rel="noopener">Open full screen <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="proj-embed">
+        <iframe class="tall" src="projects/gat.html" title="Interactive explainer: graph attention, shown as a constellation of papers" loading="lazy"></iframe>
+      </div>
+      <p class="proj-small">This explainer is interactive and works best on a larger screen. <a href="projects/gat.html" target="_blank" rel="noopener">Open it full screen</a>.</p>
+    </article>
   </div>
 </section>
 
