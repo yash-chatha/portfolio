@@ -861,6 +861,9 @@ const nebMat = new THREE.ShaderMaterial({
       col *= mix(0.32, 1.2, band);
       float vig = smoothstep(1.4, 0.2, length((uv - 0.5) * vec2(1.0, 1.15)) * 1.5);
       col *= mix(0.45, 1.0, vig);
+      // Toned down a touch: a little dimmer and slightly less saturated, so content stays in front
+      float lumN = dot(col, vec3(0.2126, 0.7152, 0.0722));
+      col = mix(vec3(lumN), col, 0.88) * 0.74;
       gl_FragColor = vec4(col, 1.0);
     }`,
   depthTest: false, depthWrite: false
